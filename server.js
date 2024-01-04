@@ -9,6 +9,9 @@ const dbConfig = require('./config/connection');
 // Import the routes
 const apiRoutes = require('./routes/api/apiRoutes');
 
+app.use(express.json());
+
+
 // Check the MySQL connection status before starting the server
 dbConfig.promisePool.getConnection()
     .then((connection) => {
