@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { promisePool } = require('../../config/connection');
+const {getParents, getStudents, createParent, createStudent} = require('../../db/schema');
 
+
+//GET Routes.
 router.get('/parents', async (req, res) => {
     try {
-        const [results, fields] = await promisePool.query('SELECT * FROM Parent');
+        const [results, fields] = await promisePool.query(getParents);
         res.json(results);
     } catch(error) {
         console.error('Error Getting Parents: ' , error);
@@ -15,7 +18,7 @@ router.get('/parents', async (req, res) => {
 router.get('/students', async (req, res) => {
     try {
         // Using promisePool for executing queries
-        const [results, fields] = await promisePool.query('SELECT * FROM Student');
+        const [results, fields] = await promisePool.query(getStudents);
         res.json(results);
     } catch (error) {
         console.error('Error executing query:', error);
@@ -23,16 +26,16 @@ router.get('/students', async (req, res) => {
     }
 });
 
+//POST Routes.
 router.post('/parent', async (req, res) => {
     try {
         const {firstName, lastName, phone, email} = req.body;
         if(!firstName || !lastName || !phone || !email) {
             res.status(400).json({error: 'Missing required fields.'})
         }
-        const sql = 'INSERT INTO Parent (firstName, lastName, phone, email) VALUES (?, ?, ?, ?)';
         const values = [firstName, lastName, phone, email];
 
-        const [result] = await promisePool.query(sql, values);
+        const [result] = await promisePool.query(createParent, values);
         res.json({ success: true, insertedId: result.insertId });
 
     } catch(error) {
@@ -49,10 +52,9 @@ router.post('/student', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields.' });
         }
 
-        const sql = 'INSERT INTO Student (firstName, lastName, age, parentId) VALUES (?, ?, ?, ?)';
         const values = [firstName, lastName, age, parentId];
 
-        const [result] = await promisePool.query(sql, values);
+        const [result] = await promisePool.query(createStudent, values);
 
         res.json({ success: true, insertedId: result.insertId });
     } catch (error) {

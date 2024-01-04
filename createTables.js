@@ -9,7 +9,7 @@ async function createTables() {
 
         console.log('Executing schema queries...');
 
-        for (const query of schemas) {
+        for (const query of schemas.createTables) {
             try {
                 await promisePool.query(query);
                 console.log(`Query executed successfully: ${query}`);
