@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { promisePool } = require('../../config/connection');
-const {getParents, getStudents, createParent, createStudent, getStudentById} = require('../../db/schema');
+const {getParents, getStudents, createParent, createStudent, getStudentById, getParentById, createService, enrollStudent} = require('../../db/schema');
 const {sqlSelectAll, sqlGetOneById, sqlCreateOne} = require('../../utils/sqlActions');
 
 //GET Routes.
@@ -17,6 +16,10 @@ router.get('/student/:id', async (req, res) => {
     sqlGetOneById(req, res, getStudentById);
 })
 
+router.get('/parent/:id', async (req, res) => {
+    sqlGetOneById(req, res, getParentById);
+})
+
 //POST Routes.
 router.post('/parent', async (req, res) => {
         sqlCreateOne(req, res, createParent, "parent");
@@ -24,6 +27,14 @@ router.post('/parent', async (req, res) => {
 
 router.post('/student', async (req, res) => {
         sqlCreateOne(req, res, createStudent, "student");
+});
+
+router.post('/service', async (req, res) => {
+        sqlCreateOne(req, res, createService, "service");
+});
+
+router.post('/enroll/student/:studentId/service/:serviceId', async (req, res) => {
+    sqlCreateOne(req, res, enrollStudent, "enrollment");
 });
 
 module.exports = router;

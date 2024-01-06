@@ -38,6 +38,18 @@ const sqlActions = {
                         };
                         values = [fn, ln, phone, email];
                     break;
+                case "service":
+                    const { serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip} = req.body;
+                    if(!serviceName || !description || !perSessionPrice || !remote || !locationName || !stAddress || !city || !state || !zip) {
+                        return res.status(400).json({error: 'Missing required fields.'});
+                    };
+                    values = [serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip];
+                case "enrollment":
+                    const { studentId, serviceId} = req.params;
+                    if(!studentId || !serviceId) {
+                        return res.status(400).json({error: 'Missing required params.'});
+                    };
+                    values = [studentId, serviceId];
             }
         } catch(err) {
             console.error("Error Adding to DB: " , err);

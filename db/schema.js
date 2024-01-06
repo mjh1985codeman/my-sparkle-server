@@ -47,6 +47,7 @@ const queries = {
     createStudent: `INSERT INTO Student (firstName, lastName, age, parentId) VALUES (?, ?, ?, ?)`,
     getStudentById: `SELECT * FROM Student WHERE studentId = ?`,
     getParentById: `SELECT * FROM Parent WHERE parentId = ?`,
+    createService: `INSERT INTO Services (serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     enrollStudent: `INSERT INTO StudentEnrollments (student, service) VALUES (?, ?)`
 }
 
