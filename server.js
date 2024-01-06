@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const port = 3000;
+const { authMiddleware } = require('./utils/auth');
 
 // Import the MySQL connection module
 const dbConfig = require('./config/connection');
@@ -10,6 +11,7 @@ const dbConfig = require('./config/connection');
 const apiRoutes = require('./routes/api/apiRoutes');
 
 app.use(express.json());
+app.use(authMiddleware);
 
 
 // Check the MySQL connection status before starting the server

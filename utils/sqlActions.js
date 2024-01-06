@@ -1,4 +1,6 @@
 const { promisePool } = require('../config/connection');
+const bcrypt = require('bcryptjs');
+const { signToken, verifyToken, verifyTokenBelongsToUser } = require('./auth');
 
 const sqlActions = {
     sqlSelectAll: async function(req, res, q) {
@@ -31,12 +33,20 @@ const sqlActions = {
                     }
                         values = [firstName, lastName, age, parentId];
                     break;
-                case "parent":
-                    const { fn, ln, phone, email } = req.body;
-                        if (!fn || !ln || !phone || !email) {
+                case "parent-registration":
+                    const { fn, ln, phone, email, password } = req.body;
+                        if (!fn || !ln || !phone || !email || !password) {
                             return res.status(400).json({ error: 'Missing required fields.' });
                         };
-                        values = [fn, ln, phone, email];
+                         // Hash the password
+                        const hashedPassword = await bcrypt.hash(password, 10);
+
+                        values = [fn, ln, phone, email, hashedPassword];
+
+                        const token = signToken({ email });
+                        // Attach the token to the response
+                        res.setHeader('x-auth-token', token);
+                    
                     break;
                 case "service":
                     const { serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip} = req.body;

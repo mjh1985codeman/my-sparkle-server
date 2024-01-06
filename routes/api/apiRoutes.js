@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const {getParents, getStudents, createParent, createStudent, getStudentById, getParentById, createService, enrollStudent} = require('../../db/schema');
+const {getParents, getStudents, createParent, createStudent, getStudentById, getParentById, createService, enrollStudent, registerParent} = require('../../db/schema');
 const {sqlSelectAll, sqlGetOneById, sqlCreateOne} = require('../../utils/sqlActions');
+
 
 //GET Routes.
 router.get('/parents', async (req, res) => {
@@ -21,9 +22,6 @@ router.get('/parent/:id', async (req, res) => {
 })
 
 //POST Routes.
-router.post('/parent', async (req, res) => {
-        sqlCreateOne(req, res, createParent, "parent");
-});
 
 router.post('/student', async (req, res) => {
         sqlCreateOne(req, res, createStudent, "student");
@@ -36,5 +34,9 @@ router.post('/service', async (req, res) => {
 router.post('/enroll/student/:studentId/service/:serviceId', async (req, res) => {
     sqlCreateOne(req, res, enrollStudent, "enrollment");
 });
+
+router.post('/register/parent', async (req, res) => {
+    sqlCreateOne(req, res, registerParent, "parent-registration");
+})
 
 module.exports = router;

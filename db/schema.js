@@ -10,7 +10,8 @@ const queries = {
             firstName VARCHAR(50) NOT NULL CHECK (CHAR_LENGTH(firstName) >= 1 AND CHAR_LENGTH(firstName) <= 50),
             lastName VARCHAR(50) NOT NULL CHECK (CHAR_LENGTH(lastName) >= 1 AND CHAR_LENGTH(lastName) <= 50),
             phone VARCHAR(15),
-            email VARCHAR(50) NOT NULL CHECK (CHAR_LENGTH(email) >= 1 AND CHAR_LENGTH(email) <= 50)
+            email VARCHAR(50) NOT NULL CHECK (CHAR_LENGTH(email) >= 1 AND CHAR_LENGTH(email) <= 50) UNIQUE,
+            password VARCHAR(200) NOT NULL CHECK (CHAR_LENGTH(password) >= 4 AND CHAR_LENGTH(password) <= 200)
         );`,
         `CREATE TABLE Student (
             studentId INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,12 +44,12 @@ const queries = {
     ],
     getParents: `SELECT * FROM Parent;`,
     getStudents: `SELECT * FROM Student;`,
-    createParent: `INSERT INTO Parent (firstName, lastName, phone, email) VALUES (?, ?, ?, ?)`,
+    registerParent: `INSERT INTO Parent (firstName, lastName, phone, email, password) VALUES (?, ?, ?, ?, ?)`,
     createStudent: `INSERT INTO Student (firstName, lastName, age, parentId) VALUES (?, ?, ?, ?)`,
     getStudentById: `SELECT * FROM Student WHERE studentId = ?`,
     getParentById: `SELECT * FROM Parent WHERE parentId = ?`,
     createService: `INSERT INTO Services (serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    enrollStudent: `INSERT INTO StudentEnrollments (student, service) VALUES (?, ?)`
+    enrollStudent: `INSERT INTO StudentEnrollments (student, service) VALUES (?, ?)`,
 }
 
 module.exports = queries; 
