@@ -50,6 +50,7 @@ const queries = {
     getParentById: `SELECT * FROM Parent WHERE parentId = ?`,
     createService: `INSERT INTO Services (serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     enrollStudent: `INSERT INTO StudentEnrollments (student, service) VALUES (?, ?)`,
+    getParentByEmail: `SELECT * FROM Parent WHERE email = ?`,
 }
 
 module.exports = queries; 

@@ -40,13 +40,17 @@ const sqlActions = {
                         };
                          // Hash the password
                         const hashedPassword = await bcrypt.hash(password, 10);
-
                         values = [fn, ln, phone, email, hashedPassword];
-
                         const token = signToken({ email });
                         // Attach the token to the response
                         res.setHeader('x-auth-token', token);
-                    
+                        try {
+                            const [result] = await promisePool.query(q, values);
+                            res.json({ success: true, insertedId: result.insertId });
+                        } catch (error) {
+                            console.error('Error with Regisration:', error);
+                            res.status(500).send(`Server Error: ${error.sqlMessage || error.message || error}`);
+                        }
                     break;
                 case "service":
                     const { serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip} = req.body;
@@ -60,16 +64,36 @@ const sqlActions = {
                         return res.status(400).json({error: 'Missing required params.'});
                     };
                     values = [studentId, serviceId];
+                case "login":
+                    const {em, pw} = req.body;
+
+                    try {
+                    const parent = await promisePool.query(q, em);
+                    //check if parent exists: 
+                    if(!parent) {
+                        return res.status(401).json({error: 'No User Found w/ Email'});
+                    };
+                    const isValidPW = await bcrypt.compare(pw, parent[0][0].password);
+                    if(!isValidPW) {
+                        return res.status(401).json({error: 'Invalid Credentials'});
+                    }
+
+                    //userAuthenticated: 
+                    if(isValidPW) {
+                        try {
+                            const {firstName, lastName, email} = parent[0];
+                            const token = signToken({firstName: firstName, lastName: lastName, email: email});
+                            res.json({token});
+                        } catch (err) {
+                            res.status(500).json({error: `Error issuing Token for Login: ${err}`});
+                        }
+                    }
+                    } catch(err) {
+                        res.status(500).json({error: `Error processing request: ${err}`});
+                    }
             }
         } catch(err) {
-            console.error("Error Adding to DB: " , err);
-        }
-        try {
-            const [result] = await promisePool.query(q, values);
-            res.json({ success: true, insertedId: result.insertId });
-        } catch (error) {
-            console.error('Error creating student:', error);
-            res.status(500).send(`Server Error: ${error.sqlMessage + " SQL code: " + error.code || error.message || error}`);
+            console.error("Error Processing Request with DB: " , err);
         }
     }
 }
