@@ -51,6 +51,8 @@ const queries = {
     createService: `INSERT INTO Services (serviceName, description, perSessionPrice, remote, locationName, stAddress, city, state, zip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     enrollStudent: `INSERT INTO StudentEnrollments (student, service) VALUES (?, ?)`,
     getParentByEmail: `SELECT * FROM Parent WHERE email = ?`,
+    studentBelongsToParent: `SELECT COUNT(*) > 0 AS belongsToParent FROM Student WHERE studentId = ? AND parentId = ?`,
+    getParentDashBoardDetails: `SELECT * FROM`
 }
 
 module.exports = queries; 

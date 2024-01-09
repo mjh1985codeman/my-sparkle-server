@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const {getParents, getStudents, getParentByEmail, createStudent, getStudentById, getParentById, createService, enrollStudent, registerParent} = require('../../db/schema');
+const {getParents, getStudents, getParentByEmail, createStudent, getStudentById, getParentById, createService, enrollStudent, registerParent, getParentDashBoardDetails} = require('../../db/schema');
 const {sqlSelectAll, sqlGetOneById, sqlCreateOne} = require('../../utils/sqlActions');
+const { authMiddleware } = require('../../utils/auth');
 
 
 //GET Routes.
@@ -13,21 +14,25 @@ router.get('/students', async (req, res) => {
     sqlSelectAll(req, res, getStudents);
 });
 
-router.get('/student/:id', async (req, res) => {
+router.get('/student/:id', authMiddleware, async (req, res) => {
     sqlGetOneById(req, res, getStudentById);
 })
 
-router.get('/parent/:id', async (req, res) => {
+router.get('/parent/:id', authMiddleware, async (req, res) => {
     sqlGetOneById(req, res, getParentById);
+})
+
+router.get('/parent/:parentId/dashboard', authMiddleware, async (req,res) => {
+    sqlSecureSelect(req, res, getParentDashBoardDetails);
 })
 
 //POST Routes.
 
-router.post('/student', async (req, res) => {
+router.post('/student', authMiddleware, async (req, res) => {
         sqlCreateOne(req, res, createStudent, "student");
 });
 
-router.post('/service', async (req, res) => {
+router.post('/service', authMiddleware, async (req, res) => {
         sqlCreateOne(req, res, createService, "service");
 });
 

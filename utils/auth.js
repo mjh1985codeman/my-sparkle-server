@@ -24,6 +24,7 @@ module.exports = {
         try {
             const { data } = jwt.verify(token, secret, { maxAge: expiration });
             req.user = data;
+      
         } catch (error) {
             console.log('there was an error with the token: ', error);
         }
@@ -33,6 +34,7 @@ module.exports = {
   
   signToken: function ({ firstName, lastName, email}) {
   const payload = {firstName, lastName, email};
+
     
     return jwt.sign(
         { data: payload },
@@ -43,11 +45,20 @@ module.exports = {
 
   verifyToken: function(token) {
     const validCheck = jwt.verify(token, secret, {maxAge: expiration});
-    if(validCheck !== null || undefined || "") {
+    if (validCheck !== null && validCheck !== undefined && validCheck !== "")  {
       return validCheck;
     } else {
       return false;
     }
+  },
+
+  getUserInfoFromToken: function(t) {
+    const validToken = jwt.verify(t, secret, {maxAge: expiration});
+    if(validToken == null || undefined || "") {
+      return false;
+    }
+    const tokenInfo = jwt.decode(t);
+    return tokenInfo;
   },
 
   verifyTokenBelongsToUser: function(t, user) {
