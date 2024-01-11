@@ -3,6 +3,15 @@ const bcrypt = require('bcryptjs');
 const {studentBelongsToParent, getParentByEmail} = require('../db/schema');
 const { signToken, verifyToken, verifyTokenBelongsToUser, getUserInfoFromToken } = require('./auth');
 
+const verifications = {
+    hasAssociation: async function(sId, pId) {
+        const belongsToParent = await promisePool.query(studentBelongsToParent, [sId, pId]);
+        const belongsToParentResult = belongsToParent[0][0];
+        const belongsToParentValue = belongsToParentResult ? belongsToParentResult.belongsToParent : null;
+        return belongsToParentValue;
+    }
+};
+
 const sqlActions = {
     sqlSelectAll: async function(req, res, q) {
         try {
@@ -16,14 +25,14 @@ const sqlActions = {
     sqlGetOneById: async function(req, res, q) {
         try {
             const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+            const goodToken = verifyToken(token);
+            goodToken ? "" : res.status(401).send('Invalid Token'); 
             const userFromToken = getUserInfoFromToken(token);
             const parent = await promisePool.query(getParentByEmail, userFromToken.data.email);
             const parentId = parent[0][0].parentId || "";
             const requestedStudentId = req.params.id;
-            const belongsToParent = await promisePool.query(studentBelongsToParent, [requestedStudentId, parentId]);
-            const belongsToParentResult = belongsToParent[0][0];
-            const belongsToParentValue = belongsToParentResult ? belongsToParentResult.belongsToParent : null;
-            if(belongsToParentValue > 0) {
+            const associations = await verifications.hasAssociation(requestedStudentId, parentId);
+            if(associations > 0) {
                 const [results, fields] = await promisePool.query(q, requestedStudentId);
                 res.json(results);
             } else {
@@ -31,8 +40,7 @@ const sqlActions = {
             }
             
         } catch (error) {
-            console.error('Error executing query: ' , error);
-            res.status(500).send(`Server Error: ${error.sqlMessage + " SQL code: " + error.code || error.message || error}`)
+            res.status(500).send(`Server Error: ${error.sqlMessage || error.message || error}`)
         }
     }, 
     sqlCreateOne: async function(req, res, q, thing) {
@@ -133,10 +141,6 @@ const sqlActions = {
             console.error("Error Processing Request with DB: " , err);
         }
     },
-
-    sqlSecureSelect: async function(req, res, q) { 
-
-    }
 }
 
 module.exports = sqlActions;
