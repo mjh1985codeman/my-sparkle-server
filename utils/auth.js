@@ -16,9 +16,13 @@ module.exports = {
     },
 
     verifyToken: function(token) {
-    const validCheck = jwt.verify(token, secret, {maxAge: expiration});
-    if (validCheck !== null && validCheck !== undefined && validCheck !== "")  {
-        return validCheck;
+    if(token) {
+        const validCheck = jwt.verify(token, secret, {maxAge: expiration});
+        if (validCheck !== null && validCheck !== undefined && validCheck !== "")  {
+            return validCheck;
+        } else {
+            return false;
+        }
     } else {
         return false;
     }

@@ -4,11 +4,21 @@ const {studentBelongsToParent, getParentByEmail} = require('../db/schema');
 const { signToken, verifyToken, verifyTokenBelongsToUser, getUserInfoFromToken } = require('./auth');
 
 const verifications = {
-    hasAssociation: async function(sId, pId) {
-        const belongsToParent = await promisePool.query(studentBelongsToParent, [sId, pId]);
-        const belongsToParentResult = belongsToParent[0][0];
-        const belongsToParentValue = belongsToParentResult ? belongsToParentResult.belongsToParent : null;
-        return belongsToParentValue;
+    hasAssociation: async function(req, res) {
+        const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+        const goodToken = verifyToken(token);
+        if(goodToken) {
+            const userFromToken = getUserInfoFromToken(token);
+            const parent = await promisePool.query(getParentByEmail, userFromToken.data.email);
+            const parentId = parent[0][0].parentId || "";
+            const requestedStudentId = req.params.id;
+            const belongsToParent = await promisePool.query(studentBelongsToParent, [requestedStudentId, parentId]);
+            const belongsToParentResult = belongsToParent[0][0];
+            const belongsToParentValue = belongsToParentResult ? belongsToParentResult.belongsToParent : null;
+            return belongsToParentValue;
+        } else {
+            return false;
+        }
     }
 };
 
@@ -24,15 +34,9 @@ const sqlActions = {
     },
     sqlGetOneById: async function(req, res, q) {
         try {
-            const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-            const goodToken = verifyToken(token);
-            goodToken ? "" : res.status(401).send('Invalid Token'); 
-            const userFromToken = getUserInfoFromToken(token);
-            const parent = await promisePool.query(getParentByEmail, userFromToken.data.email);
-            const parentId = parent[0][0].parentId || "";
+            const verifiedRelationship = await verifications.hasAssociation(req, res);
             const requestedStudentId = req.params.id;
-            const associations = await verifications.hasAssociation(requestedStudentId, parentId);
-            if(associations > 0) {
+            if(verifiedRelationship > 0) {
                 const [results, fields] = await promisePool.query(q, requestedStudentId);
                 res.json(results);
             } else {
@@ -101,8 +105,13 @@ const sqlActions = {
                     };
                     values = [studentId, serviceId];
                     try {
-                        const [result] = await promisePool.query(q, values);
-                        res.json({ success: true, insertedId: result.insertId });
+                        const verified = await verifications.hasAssociation(req, res);
+                        if(verified) {
+                            const [result] = await promisePool.query(q, values);
+                            res.json({ success: true, insertedId: result.insertId });
+                        } else {
+                            res.status(401).send("Verifications Failed");
+                        }
                     } catch (error) {
                         console.error('Error with Registration:', error);
                         res.status(500).send(`Server Error: ${error.sqlMessage || error.message || error}`);
