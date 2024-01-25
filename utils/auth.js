@@ -43,9 +43,9 @@ module.exports = {
         return false;
     }
     const tokenInfo = jwt.decode(t);
-    if(tokenInfo.data && user.email) {
+    if(tokenInfo.data && user.data) {
         const tokenEmail = tokenInfo.data.email || 'no token email';
-        const userEmail = user.email || 'no user email';
+        const userEmail = user.data.email || 'no user email';
         if(tokenEmail === userEmail) {
         return true;
         } else {

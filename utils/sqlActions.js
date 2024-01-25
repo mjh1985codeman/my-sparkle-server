@@ -1,26 +1,7 @@
 const { promisePool } = require('../config/connection');
 const bcrypt = require('bcryptjs');
-const {studentBelongsToParent, getParentByEmail} = require('../db/schema');
-const { signToken, verifyToken, verifyTokenBelongsToUser, getUserInfoFromToken } = require('./auth');
-
-const verifications = {
-    hasAssociation: async function(req, res) {
-        const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-        const goodToken = verifyToken(token);
-        if(goodToken) {
-            const userFromToken = getUserInfoFromToken(token);
-            const parent = await promisePool.query(getParentByEmail, userFromToken.data.email);
-            const parentId = parent[0][0].parentId || "";
-            const requestedStudentId = req.params.id;
-            const belongsToParent = await promisePool.query(studentBelongsToParent, [requestedStudentId, parentId]);
-            const belongsToParentResult = belongsToParent[0][0];
-            const belongsToParentValue = belongsToParentResult ? belongsToParentResult.belongsToParent : null;
-            return belongsToParentValue;
-        } else {
-            return false;
-        }
-    }
-};
+const { signToken } = require('./auth');
+const {hasAssociation} = require('./helpers');
 
 const sqlActions = {
     sqlSelectAll: async function(req, res, q) {
@@ -34,7 +15,7 @@ const sqlActions = {
     },
     sqlGetOneById: async function(req, res, q) {
         try {
-            const verifiedRelationship = await verifications.hasAssociation(req, res);
+            const verifiedRelationship = await hasAssociation(req, res);
             const requestedStudentId = req.params.id;
             if(verifiedRelationship > 0) {
                 const [results, fields] = await promisePool.query(q, requestedStudentId);
@@ -105,7 +86,7 @@ const sqlActions = {
                     };
                     values = [studentId, serviceId];
                     try {
-                        const verified = await verifications.hasAssociation(req, res);
+                        const verified = await hasAssociation(req, res);
                         if(verified) {
                             const [result] = await promisePool.query(q, values);
                             res.json({ success: true, insertedId: result.insertId });
