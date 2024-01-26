@@ -1,7 +1,7 @@
 const { promisePool } = require('../config/connection');
 const bcrypt = require('bcryptjs');
 const { signToken } = require('./auth');
-const {hasAssociation} = require('./helpers');
+const {hasAssociation, isLoggedIn} = require('./helpers');
 
 const sqlActions = {
     sqlSelectAll: async function(req, res, q) {
@@ -17,7 +17,7 @@ const sqlActions = {
         try {
             const verifiedRelationship = await hasAssociation(req, res);
             const requestedStudentId = req.params.id;
-            if(verifiedRelationship > 0) {
+            if(verifiedRelationship) {
                 const [results, fields] = await promisePool.query(q, requestedStudentId);
                 res.json(results);
             } else {
@@ -33,6 +33,10 @@ const sqlActions = {
         try {
             switch(thing.toLowerCase()) {
                 case "student":
+                    const loggedIn = await isLoggedIn(req, res);
+                    if(!loggedIn) {
+                        return res.status(401).json("You Must Be Registered and Logged In to create a student.");
+                    }
                     const { firstName, lastName, age, parentId } = req.body;
                     if (!firstName || !lastName || !age || !parentId) {
                         return res.status(400).json({ error: 'Missing required fields.' });
